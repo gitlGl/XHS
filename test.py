@@ -1,51 +1,39 @@
-#异步网络服务器使用例子，wsgi协议
-import uvicorn
-class App:
-    def __init__(self):
-        self.routes = {}
-    def route(self, path):
-        def decorator(fn):
-            self.routes[path] = fn
-            return fn
-        return decorator
+#协程例子
+import os
+import asyncio,time
+async def get_html(n,i):
+    # 模拟从网站下载页�?
+    print(f"第{n}组第{i}个任�?")
+    if n == 2:
+        await asyncio.sleep(2)
+    else:await asyncio.sleep(1)
+    print(f"第{n}组第{i}个任务完�?")
 
-    async def __call__(self, scope, receive, send):
-        path = scope['path']
-        handler = self.routes.get(path,None)
-        if handler is not None:
-                await handler(scope, receive, send)
-                return
-        await send({
-            'type': 'http.response.start',
-            'status': 404,
-            'headers': [(b'content-type', b'text/plain')],
-        })
-        await send({
-            'type': 'http.response.body',
-            'body': b'Not Found',
-        })
+async def task_list(n):
+    print(f"第{n}组任务开�?")
+    for i in range(1,3):
+        asyncio.create_task(get_html(n,i))
+    print("安排结束")
+    await asyncio.sleep(3)
 
-app = App()
-@app.route('/')#"/"与该函数的绑定关系会被保存在app中的字典中
-async def handle_home(scope, receive, send):
-    await send({
-        'type': 'http.response.start',
-        'status': 200,
-        'headers': [(b'content-type', b'text/plain')],
-    })
-    await send({
-        'type': 'http.response.body',
-        'body': b'Hello, World!',
-    })
-if __name__ == '__main__':
-    #网络请求到来后uvicorn服务器会调用app()(调用call函数)
-    uvicorn.run(app, host='localhost', port=8000)
+async def hello():
+    print("test")
+    await asyncio.sleep(3)
 
+async def hello2():
+    print("test2")
 
-#bottle使用例子
-from bottle import route, run, template
-@route('/hello/<name>')
-def index(name):
-    return template('<b>Hello {{name}}</b>!', name=name)
+async def main():
+    # 通过 asyncio.create_task 函数创建任务
+    # 调用时需要给它传递一个协程，然后返回一个任务对�?
+    lst = []
+    for i in range(1,3):
+        reuslt =  asyncio.create_task(task_list(i))
+        lst.append(reuslt)
 
-run(host='localhost', port=8080)
+    await hello()
+    await hello2()
+    await asyncio.gather(*lst)
+    await asyncio.as_completed(lst)
+    
+asyncio.run(main(),debug= True)
