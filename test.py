@@ -1,57 +1,55 @@
-#2024/02/15
-import cgi
-def notfound_404(environ, start_response):
-    start_response('404 Not Found', [ ('Content-type', 'text/plain') ])
-    return [b'Not Found']
+#2024/02/16
+import os
+import mmap
 
-class PathDispatcher:
-    def __init__(self):
-        self.pathmap = { }
+size = 1000000
+with open('data', 'wb') as f:
+     f.seek(size-1)
+     f.write(b'\x00')#前面被填充为b'\x00'
 
-    def __call__(self, environ, start_response):
-        path = environ['PATH_INFO']
-        params = cgi.FieldStorage(environ['wsgi.input'],
-                                  environ=environ)
-        method = environ['REQUEST_METHOD'].lower()
-        environ['params'] = { key: params.getvalue(key) for key in params }
-        handler = self.pathmap.get((method,path), notfound_404)
-        return handler(environ, start_response)
+def memory_map(filename, access=mmap.ACCESS_WRITE):
+    size = os.path.getsize(filename)
+    fd = os.open(filename, os.O_RDWR)#为可读可写
+    return mmap.mmap(fd, size, access=access)
 
-    def register(self, method, path, function):
-        self.pathmap[method.lower(), path] = function
-        return function
-    
-import time
+# 打开文件并创建内存映射
+with open("data", "r") as f:
+    #获取文件描述符f.fileno()与上面fd一致
+    with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as m:
+        print(type(m.readline()))
+        
 
-_hello_resp = "hello word"
-def hello_world(environ, start_response):
-    start_response('200 OK', [ ('Content-type','text/html')])
-    params = environ['params']
-    resp = _hello_resp.format(name=params.get('name'))
-    yield resp.encode('utf-8')
+# 修改文件内容
+with open("data", "r+") as f:
+    with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_WRITE) as m:
+        m[0:5] = b"Hello"
+        
+#只能修改，不能删除，增加 。不能突破用户虚拟内存大小限制，必要时需要分块映射处理    
+target_line = 3  # 要修改的行号
+new_content = b'#test'  # 新的行内容
 
-_localtime_resp = '''\
-<?xml version="1.0"?>
-<time>
-  <year>{t.tm_year}</year>
-  <month>{t.tm_mon}</month>
-  <day>{t.tm_mday}</day>
-  <hour>{t.tm_hour}</hour>
-  <minute>{t.tm_min}</minute>
-  <second>{t.tm_sec}</second>
-</time>'''
-
-def localtime(environ, start_response):
-    start_response('200 OK', [ ('Content-type', 'application/xml') ])
-    resp = _localtime_resp.format(t=time.localtime())
-    yield resp.encode('utf-8')
-
-if __name__ == '__main__':
-    from wsgiref.simple_server import make_server
-    dispatcher = PathDispatcher()
-    dispatcher.register('GET', '/hello', hello_world)
-    dispatcher.register('GET', '/localtime', localtime)
-    # Launch a basic server
-    httpd = make_server('', 8080, dispatcher)
-    print('Serving on port 8080...')
-    httpd.serve_forever()
+with open('test.py', 'r+') as file:
+    with mmap.mmap(file.fileno(), 0,access=mmap.ACCESS_WRITE ) as mm:
+        line_number = 0
+        while True:
+            line = mm.readline()
+            if not line:
+                break  # 已到达文件末尾
+            line_number += 1
+            if line_number == target_line:
+                lenth = len(line)
+                line_start = mm.tell() - lenth  # 计算第三行的起始位置
+                line_end =  mm.tell() -1    # 计算第三行的结束位置
+                
+                content = new_content
+                if  len(content)   > lenth -1 :
+                    print("error")
+                    break
+                
+                while len(content)   < lenth -1 :
+                    content = content + b' ' 
+              
+            
+                mm[line_start:line_end] = content    # 替换第三行的内容
+                mm.flush()  # 将修改写回文件
+                break
