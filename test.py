@@ -1,55 +1,34 @@
-2023/12/13
-class MyList:
-    def __init__(self, items):
-        self.items = items
-        self.current_index = 0
+#2023/12/13
+"""
+book = load_workbook("词频统计.xlsx")
+book.save("词频统计.xlsx")
 
-    def __repr__(self):
-        return f"MyList({self.items})"
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self.current_index < len(self.items):
-            current_item = self.items[self.current_index]
-            self.current_index += 1
-            return current_item
-        else:
-            raise StopIteration
-        
-#创建 MyList 对象
-my_list = MyList([3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5])
-
-# 对 MyList 对象进行排序
-sorted_list = sorted(my_list)
-
-# 打印排序后的结果
-print(sorted_list,my_list.items)
-
- 
-class Person:
-    def __init__(self, name, age, friends):
-        self.name = name
-        self.age = age
-        self.friends = friends
-
-    def __repr__(self):
-        return f"Person(name='{self.name}', age={self.age}, friends={self.friends})"
-
-    def __lt__(self, other):
-        return self.age < other.age
-
-# 创建 Person 对象列表
-people = [
-    Person("Alice", 25, ["Charlie", "Bob"]),
-    Person("Bob", 30, ["Charlie", "David"]),
-    Person("Charlie", 20, ["Alice", "Bob"])
-]
-
-# 使用 sort() 函数对 Person 对象列表进行排序
-people.sort()
-
-# 打印排序后的结果
-for person in people:
-    print(person)
+用openyxl操作excel文件运行期间退出终端（强制退出进程）会
+导致文件损坏，经过测试是上面两行代码没执行完便强制退出导致，
+想起来pyqt里面关闭窗口便会执行eventclse函数，但是关闭窗口其实是
+属于键盘/鼠标中断信号，跳转中断函数处理资源后主动退出，
+与关闭终端强被制退出不是一个概念，关闭终端后，终端中的子进程会被kill掉，
+当然也可以通过参数独立运行进程，使得不受终端影响。关机时候偶尔提醒有程序未退出，
+是避免关机关闭进程后导致应用程序文件损坏，现在程序越来越规范比较少出现提示程序未退出，
+因为关机时候会发送关机信号给应用程序，应用程序也相应的设计了接收关机信号后的处理函数。
+"""
+import signal
+flag = 0#中断退出标志
+def signal_handler(sig, frame):
+    while True:
+        f = input("退出程序？输入Y/N:")
+        if f == "Y" or f == 'y':
+            global flag
+            flag = 1
+            break
+        if f == "N" or f == 'n':
+            break
+    
+    #print(sig,type(sig))#(type int)
+    # frame为调用函数堆栈
+    # stack = traceback.extract_stack(frame)
+    # for file_name, lineno, function, _ in stack:
+    #     print(file_name,lineno,function)
+    # locals_dict = frame.f_locals
+    # # for var_name, var_value in locals_dict.items():
+    # #     print(f"{var_name} = {var_value}")
