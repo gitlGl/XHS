@@ -1,39 +1,38 @@
 #2024/02/19
-from decimal import Decimal, localcontext, ROUND_HALF_UP,getcontext
-a = 4.2 + 2.1
-print(a,a == 6.3)#输出：6.300000000000001 False
+from datetime import timedelta,datetime
+"""时间段"""
+a = timedelta(days=2, hours=6)
+b = timedelta(hours=4.5)
+c = a + b
+c.days#2
+c.seconds#37800
+c.seconds / 3600#10.5
+c.total_seconds() / 3600#58.5
 
-a ,b= Decimal('4.2') ,Decimal('2.1')
-print(a + b ,a + b == Decimal('6.3'))#输出：6.3 True
+"""时间段与时间运算"""
+a = datetime(2012, 9, 23)
+print(a + timedelta(days=10))#2012-10-03 00:00:00
 
-nums = [1.23e+18, 1, -1.23e+18]#sum计算过程因为精度问题“1”被舍弃
-sum(nums) # 0.0
+b = datetime(2012, 12, 21)
+d = b - a
+d.days#89
 
-import math#应该math中的sum函数修复精度问题
-math.fsum(nums)#1.0
+now = datetime.today()
+print(now)#2012-12-21 14:54:43.094063
+print(now + timedelta(minutes=10))#2012-12-21 15:04:43.094063
 
-# 获取当前默认上下文， 查看默认精度
-default_context = getcontext()
-default_precision,rounding = default_context.prec,default_context.rounding
-print(default_precision,rounding)  # 输出: 28 ROUND_HALF_EVEN
+"""字符串转时间"""
+date_str = "2024-02-19 08:30:00"
+date_time = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+print(date_time)#2024-02-19 08:30:00
 
-# 修改默认保留位数
-default_context.prec = 3
-num = Decimal('1.225')
-print(num.quantize(Decimal('0.00')))#输出: 1.22
-print(Decimal('1.235') - Decimal('0.01'))#默认为银行家舍入ROUND_HALF_EVEN,# 输出: 1.22
 
-# 使用上下文管理器结合设置精度和舍入模式
-with localcontext() as ctx:
-    ctx.prec = 3  # 设置上下文中的保留位数
-    ctx.rounding = ROUND_HALF_UP  # 设置上下文中的舍入模式为四舍五入。
-    print(num.quantize(Decimal('0.00')))  # 对num进行舍入并保留两位小数,输出: 1.23
-    print(Decimal('1.235') - Decimal('0.01'))# 输出: 1.23
-    """
-ROUND_HALF_EVEN，
-        银行家舍入规则：如果要舍弃的数字小于5，则直接舍弃。如果要舍弃的数字大于5，则进行进位。
-        如果要舍弃的数字等于5，且前一位数字为偶数，则直接舍弃；如果前一位数字为奇数，则进行进位 
-ROUND_HALF_UP 
-    四舍五入
-    """
-print(Decimal('1.235') - Decimal('0.01'))# 输出: 1.22
+"""时间转字符串"""
+date_time = datetime.now()
+date_str = date_time.strftime("%Y-%m-%d %H:%M:%S")
+print(date_str)#2024-02-19 16:26:36
+
+def parse_ymd(s):
+    """性能更高"""
+    year_s, mon_s, day_s = s.split('-')
+    return datetime(int(year_s), int(mon_s), int(day_s))
