@@ -1,27 +1,20 @@
-#2024/01/17
-#yield from
-def gen():
-    yield "test1"
-    yield "test2"
+#2024/01/16
+record = '....................100 .......513.25 ..........'
+cost = int(record[20:23]) * float(record[31:37])
+#切片中的数字严格说属于硬编码，如果可以尽量使用切片对象
+#提高代码可读性和可维护性
+SHARES = slice(20, 23)
+PRICE = slice(31, 37)
+print(SHARES.start,SHARES.stop,SHARES.step)#0 23 20 None
+cost = int(record[SHARES]) * float(record[PRICE])
 
-def gen_from():
-    yield from gen()
-    yield "test3"
-    
-for item in gen_from():
-    print(item)
- #Produces  test1 test2 test3 
- 
- #数组扁平化 摘自python cookbook
-from collections.abc import Iterable
-def flatten(items, ignore_types=(str, bytes)):
-    for x in items:
-        if isinstance(x, Iterable) and not isinstance(x, ignore_types):
-            yield from flatten(x)
-        else:
-            yield x
+a = slice(5, 50, 2)
+s = 'HelloWorld'
 
-items = [1, 2,"hello" ,[3, 4, [5, 6], 7], 8]
-# Produces 1 2 hello 3 4 5 6 7 8
-for x in flatten(items):
-    print(x)
+# indices(size) 方法将它映射到一个确定大小的序列上， 
+# 这个方法返回一个三元组 (start, stop, step) ，
+# 所有值都会被合适的缩小以满足边界限制， 
+# 从而使用的时候避免出现 IndexError 异常
+b = a.indices(len(s))#(5, 10, 2)
+for i in range(*a.indices(len(s))):
+    print(s[i])
