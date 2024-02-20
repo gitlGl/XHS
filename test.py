@@ -1,17 +1,11 @@
-#2023/11/28
-import copy
-#浅拷贝,只进行浅层拷贝，嵌套对象不拷贝
-items = [1, ['foo', 'bar'], 2, 3]
-items_copy = copy.copy(items)
-items_copy[0] = 100 
-items_copy[1].append('xxx') 
-#不影响原对象浅层对象，改变嵌套对象
-print(items)#[1, ['foo', 'bar', 'xxx'], 2, 3]
+#2023/12/08
+#通过字符串形式导入模块
+#知识1
+import importlib
+package_name1 = "numpy"
+package_name2 = "xxx.xxx.xxx"
+package = importlib.import_module(package_name1)
+package = importlib.import_module(package_name2)
 
-#深拷贝，层层拷贝
-items = [1, ['foo', 'bar'], 2, 3]
-items_copy = copy.deepcopy(items)
-items_copy[0] = 100 
-items_copy[1].append('xxx') 
-#不影响原对象，包括嵌套
-print(items)#[1, ['foo', 'bar'], 2, 3]
+#还可以通过内置函数__import__导入
+__import__("xxxx")#不支持"xxx.xxx.xxx"这种方式
