@@ -1,20 +1,25 @@
-2023/11/13#自定义__repr__函数
-class Person:
-    def __init__(self, name, age,*args,**kw,):
-        self.name = name
-        self.age = age
-        for key,value in kw.items():
-            self.__dict__[key] = value
-  
-    def test(self):
-        print("test")
-    def __repr__(self):
-        args = "" 
-        for key,value in self.__dict__.items():
-            if type(value) is str: 
-                value = "'" + value + "'" 
-            args = args + key + "=" + str(value) + ','
-        return f"Person({args})"
-    
-str_p = Person("mc",67,7,lin = "test",).__repr__()
-eval(str_p).test()#test
+#2023/11/13#函数柯里化例子
+def add(x, y, z):
+    return x + y + z
+
+def curry(fn):
+    def curried(*args):
+        if len(args) == 1:
+            return lambda y: lambda z: fn(args[0], y, z)
+        elif len(args) == 2:
+            return lambda z: fn(*args, z)
+        else:
+            return fn(*args)
+    return curried
+
+@curry
+def add_curried(x, y, z):
+    return x + y + z
+
+# 使用柯里化函数
+one_plus_two = add_curried(1)
+result = one_plus_two(2)
+print(result)  # 输出 3
+
+two_plus_three = add_curried(2)(3)
+print(two_plus_three)  # 输出 5
