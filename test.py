@@ -1,56 +1,34 @@
-#2023/10/19
-import threading
-import time
-
-def worker():
-  count = 0
-  while True:
-    time.sleep(1)
-    count = count + 1 
-    print("我是线程Thread-1")
-    if count == 3:
-      print("Thread-1退出")
-      break
-  
-def worker5():
-  time.sleep(10)
-  print("Thread-3退出")
-  
-def worker2():
-   t3 = threading.Thread(target=worker5, name="Thread-3")
-   t3.start()
-   time.sleep(1)
-   print("Thread-2退出")
-
-def work_daemon():
-  while True:
-    print([i.name for i in threading.enumerate()])
-    time.sleep(1)
-
-t1 = threading.Thread(target=worker, name="Thread-1")
-t2 = threading.Thread(target=worker2, name="Thread-2")
-t3 = threading.Thread(target=work_daemon, name="Thread-daemon")
-
-t1.start()
-t2.start()
-t3.setDaemon(True)#设置t3为守护线程
-t3.start()
-print("主线程运行结束")#运行结束并不意味着退出
-#输出：
+2023/11/14
+import os
+from os.path import join, getsize
+for root, dirs, files in os.walk("C:\\xhs\\"):
+        print(root, "占用", end="")
+        print(sum(getsize(join(root, name)) for name in files), end="")
+        print("bytes in", len(files), "文件数量")
+        if 'test' in dirs:
+            print("test")
 """
-['MainThread', 'Thread-1', 'Thread-2', 'Thread-daemon']
-主线程运行结束
-Thread-2退出
-我是线程Thread-1
-['MainThread', 'Thread-1', 'Thread-daemon']
-我是线程Thread-1
-['MainThread', 'Thread-1', 'Thread-daemon']
-我是线程Thread-1
-Thread-1退出
+os.walk("C:\\xhs\\")返回一个生成器，可以递归迭代一个文件夹
+每迭代一次返回所在路径，文件夹名，文件名，
+直到所有文件夹被迭代一遍后这个生成器迭代完毕，部分源代码如下
+    # Yield before recursion if going top down
+    if topdown:
+        yield top, dirs, nondirs
 
-守护线程之所以叫“守护”是因为该线程通常用于为其他线程提供服务，或监控其他线程等，
-例如守护线程监测到某线程异常退出后可以重新创建该线程。因为服务于进程内的所有线程，
-所以守护线程一般是一个死循环，所有线程结束后守护线程才会自动退出循环，退出线程。
-值得注意的是线程运行结束不意味着线程退出，比如观察图二代码的图三输出，图三输出显示主线程运行结束后并没有退出，
-主线程需要其他所有非守护线程退出后才退出，主线程退出后守护线程退出
+        # Recurse into sub-directories
+        islink, join = path.islink, path.join
+        for dirname in dirs:
+            new_path = join(top, dirname)
+            # Issue #23605: os.path.islink() is used instead of caching
+            # entry.is_symlink() result during the loop on os.scandir() because
+            # the caller can replace the directory entry during the "yield"
+            # above.
+            if followlinks or not islink(new_path):
+                yield from _walk(new_path, topdown, onerror, followlinks)
+    else:
+        # Recurse into sub-directories
+        for new_path in walk_dirs:
+            yield from _walk(new_path, topdown, onerror, followlinks)
+        # Yield after recursion if going bottom up
+        yield top, dirs, nondirs
 """
