@@ -1,65 +1,62 @@
-import json
-from pprint import pprint
-data = {
-    'name' : 'ACME',
-    'shares' : 100,
-    'price' : 542.23
-}
+class lazyproperty:
+    """
+    有get和set，优先返回get的返回值;
+    没有set，优先找dict;
+    没有set和dict，返回get.
+    """
+    def __init__(self, func):
+        self.func = func
 
-json_str = json.dumps(data)
-pprint(json_str)
+    def __get__(self, instance, cls):
+        if instance is None:
+            return self
+        else:
+            value = self.func(instance)
+            #保存结果值
+            setattr(instance, self.func.__name__, value)
+            return value
 
-# 把json数据文件写入文件中
-with open('data.json', 'w') as f:
-    json.dump(data, f)
+def lazyproperty(func):
+    name = '_lazy_' + func.__name__
+    @property#只有setter，只读不可写
+    def lazy(self):
+        if hasattr(self, name):
+            return getattr(self, name)
+        else:
+            value = func(self)
+            setattr(self, name, value)
+            return value
+    return lazy
 
-# 从文件中读取json数据
-with open('data.json', 'r') as f:
-    data = json.load(f)
-    
-#json转为字典时保持数据顺序    
-s = '{"name": "ACME", "shares": 50, "price": 490.1}'
-from collections import OrderedDict
-data = json.loads(s, object_pairs_hook=OrderedDict)
+import math
+class Circle:
+    def __init__(self, radius):
+        self.radius = radius
 
-print(data)
-#OrderedDict([('name', 'ACME'), ('shares', 50), ('price', 490.1)])
+    @lazyproperty
+    def area(self):
+        print('Computing area')
+        return math.pi * self.radius ** 2
 
-
-#对象序列化与反序列化
-class Point:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+    @lazyproperty
+    def perimeter(self):
+        print('Computing perimeter')
+        return 2 * math.pi * self.radius
         
-        
-def serialize_instance(obj):
-    d = { '__classname__' : type(obj).__name__ }
-    d.update(vars(obj))
-    return d
+c = Circle(4.0)
+c.radius#4.0
 
+c.area#输出：Computing area 50.26548245743669
+c.area#50.26548245743669
 
-classes = {
-    'Point' : Point
-}
+c.perimeter#Computing perimeter 25.132741228718345
+c.perimeter#25.132741228718345
 
-def unserialize_object(d):
-    clsname = d.pop('__classname__', None)
-    if clsname:
-        cls = classes[clsname]
-        obj = object.__new__(cls)#cls.__new__(cls) 
-        for key, value in d.items():
-            setattr(obj, key, value)
-        return obj
-    else:
-        return d
-    
-    
-    
-p = Point(2,3)
-s = json.dumps(p, default=serialize_instance)
-print(s)#'{"__classname__": "Point", "y": 3, "x": 2}'
+c.area = 25
 
-a = json.loads(s, object_hook=unserialize_object)
-print(a)#<__main__.Point object at 0x1017577d0>
-
+"""
+很多时候，构造一个延迟计算属性的主要目的是为了提升性能。 
+例如，你可以避免计算这些属性值，除非你真的需要它们。
+这里演示的方案就是用来实现这样的效果的，
+只不过它是通过以非常高效的方式使用描述器的一个精妙特性来达到这种效果的。
+        """
