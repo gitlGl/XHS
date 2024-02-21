@@ -1,62 +1,53 @@
-class lazyproperty:
-    """
-    有get和set，优先返回get的返回值;
-    没有set，优先找dict;
-    没有set和dict，返回get.
-    """
+#2024/02/01
+class Profiled:
     def __init__(self, func):
-        self.func = func
-
+        self.get = func
+   
     def __get__(self, instance, cls):
-        if instance is None:
-            return self
-        else:
-            value = self.func(instance)
-            #保存结果值
-            setattr(instance, self.func.__name__, value)
-            return value
-
-def lazyproperty(func):
-    name = '_lazy_' + func.__name__
-    @property#只有setter，只读不可写
-    def lazy(self):
-        if hasattr(self, name):
-            return getattr(self, name)
-        else:
-            value = func(self)
-            setattr(self, name, value)
-            return value
-    return lazy
-
-import math
-class Circle:
-    def __init__(self, radius):
-        self.radius = radius
-
-    @lazyproperty
-    def area(self):
-        print('Computing area')
-        return math.pi * self.radius ** 2
-
-    @lazyproperty
-    def perimeter(self):
-        print('Computing perimeter')
-        return 2 * math.pi * self.radius
+       return self.get(instance)
         
-c = Circle(4.0)
-c.radius#4.0
+    def __set__(self, instance, value):
+            if not  hasattr(self, 'set'): 
+                raise AttributeError("can't set attribute")
+            return self.set(instance,value)
+        
+    def setter(self,func):
+        self.set = func
+        return self       
+class Person:
+    def __init__(self, name ,age):
+        #self.name = name
+        self.age = age
+        self._name = None
 
-c.area#输出：Computing area 50.26548245743669
-c.area#50.26548245743669
+    @Profiled
+    def name(self):
+        print("tttt")
+        return self._name
 
-c.perimeter#Computing perimeter 25.132741228718345
-c.perimeter#25.132741228718345
+    @name.setter
+    def name(self, value):
+        if not isinstance(value, str):
+            raise TypeError('name must be a string')
+        self._name = value
+   
+    @Profiled
+    def age(self):
+        return self._age
 
-c.area = 25
+    @age.setter
+    def age(self, value):
+        if not isinstance(value, int):
+            raise TypeError('age must be an int')
+        self._age = value
+        
+p = Person("test",13)
 
-"""
-很多时候，构造一个延迟计算属性的主要目的是为了提升性能。 
-例如，你可以避免计算这些属性值，除非你真的需要它们。
-这里演示的方案就是用来实现这样的效果的，
-只不过它是通过以非常高效的方式使用描述器的一个精妙特性来达到这种效果的。
-        """
+print(p.age)#13
+p.age = 27
+print(p.age)#27
+
+
+#print(p.name)#test
+p.name = "test2"
+print(p.name)#test2
