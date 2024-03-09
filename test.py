@@ -1,15 +1,15 @@
-"""
-python中的依赖安装特别麻烦，有些项目中缺乏依赖文件，或者依赖文件不清晰
-提供两个方法导出依赖为 requirements.txt 文件
+import sys
+print(sys.path)
 
-方法二一：
-安装pipreqs，pip install pipreqs
-然后执行命令：pipreqs ./ --encoding=utf8，
-注意，pipreqs ./ 命令默认为系统编码格式。
-
-
-方案二：
-在pycharm上，找到Tool工具，选择Sync Python Requirements，导出项目依赖
-
-
-"""
+['3.8.3\\python38.zip', 
+'3.8.3\\DLLs', 
+'3.8.3\\lib', 
+'3.8.3', 
+'3.8.3\\lib\\site-packages',
+'3.8.3\\lib\\site-packages\\win32',
+'3.8.3\\lib\\site-packages\\win32\\lib',
+'3.8.3\\lib\\site-packages\\Pythonwin']
+" python -m http.server",'python -m venv myenv'#请看图二图三文件夹
+#使用python的时候偶尔会用到"python -m xxx",多数人应该不知道“-m”参数的原理
+#"m"表示module，即模块，带上-m参数的命令会去sys.path中的路径去补全完整路径
+#一个模块通常使用__init__.py文件去暴露接口提供给第三方使用。
