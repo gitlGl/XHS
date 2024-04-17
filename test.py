@@ -1,40 +1,35 @@
-import unicodedata,sys
-def print_all_categories():
-    categories = set()
-    for i in range(sys.maxunicode):  # 遍历 Unicode 中的所有代码点
-        category = unicodedata.category(chr(i))
-        categories.add(category)
-    print("所有的 Unicode 分类:")#中文字符通常归类为‘Lo’：其他字母。
-    print(sorted(categories))
+from collections import namedtuple
+Subscriber = namedtuple('Subscriber', ['addr', 'joined'])
+sub = Subscriber('jonesy@example.com', '2012-10-19')
 
-print_all_categories()
+"Subscriber(addr='jonesy@example.com', joined='2012-10-19')"
+sub.addr
+'jonesy@example.com'
+sub.joined
+'2012-10-19'
 
-s = ' hello world \n'
-s.strip()
-'hello world'
-s.lstrip()#去除左边
-'hello world \n'
-s.rstrip()#去除右边
-' hello world'
+"""命名元组的一个主要用途是将你的代码从下标操作中解脱出来。 因此
+，如果你从数据库调用中返回了一个很大的元组列表，通过下标去操作其中的元素， 
+当你在表中添加了新的列的时候你的代码可能就会出错了。
+但是如果你使用了命名元组，那么就不会有这样的顾虑。"""
 
-t = '-----hello====='
-t.lstrip('-')
-'hello====='
-t.strip('-=')#去除左边指定字符
-'hello'
+def compute_cost(records):
+    total = 0.0
+    for rec in records:
+        total += rec[1] * rec[2]
+    return total
 
-s = 'pýtĥöñ\fis\tawesome\r\n'
-remap = {
-     ord('\t') : ' ',
-     ord('\f') : ' ',
-     ord('\r') : None # Deleted
- }
-a = s.translate(remap)
-'pýtĥöñ is awesome\n'
-#一般来讲，代码越简单运行越快。对于简单的替换操作，replace()通常是最快的
-def clean_spaces(s):
-    s = s.replace('\r', '')
-    s = s.replace('\t', ' ')
-    s = s.replace('\f', ' ')
-    return s
+"""命名元组另一个用途就是作为字典的替代，因为字典存储需要更多的内存空间。
+如果你需要构建一个非常大的包含字典的数据结构，那么使用命名元组会更加高效。"""
+
+#Best practices
+Stock = namedtuple('Stock', ['name', 'shares', 'price'])
+def compute_cost(records):
+    total = 0.0
+    for rec in records:
+        s = Stock(*rec)
+        total += s.shares * s.price
+    return total
+
+
 
