@@ -1,35 +1,34 @@
-from collections import namedtuple
-Subscriber = namedtuple('Subscriber', ['addr', 'joined'])
-sub = Subscriber('jonesy@example.com', '2012-10-19')
+xpts = [1, 5, 4, 2, 10, 7,10]
+ypts = {101, 78, 37, 15, 62, 99}
+for x, y in zip(xpts, ypts):#回元组 (x, y) 的迭代器,迭代长度跟参数中最短序列长度一致。
+    print(x,y)
+    
+#代长度跟参数中最长序列长度一致
+a=[1,2,3,4]
+b=["yy","bb","tt"]
+from itertools import zip_longest
+for i in zip_longest(a,b):
+    print(i)
+    
+for i in zip_longest(a, b, fillvalue=0):
+    print(i)
 
-"Subscriber(addr='jonesy@example.com', joined='2012-10-19')"
-sub.addr
-'jonesy@example.com'
-sub.joined
-'2012-10-19'
+    
+t=[2,3,4]
+g=["hh","cc","bb"]
+f=[7.9,8,8]
+for i in zip(t, g, f):
+     print(i)
 
-"""命名元组的一个主要用途是将你的代码从下标操作中解脱出来。 因此
-，如果你从数据库调用中返回了一个很大的元组列表，通过下标去操作其中的元素， 
-当你在表中添加了新的列的时候你的代码可能就会出错了。
-但是如果你使用了命名元组，那么就不会有这样的顾虑。"""
-
-def compute_cost(records):
-    total = 0.0
-    for rec in records:
-        total += rec[1] * rec[2]
-    return total
-
-"""命名元组另一个用途就是作为字典的替代，因为字典存储需要更多的内存空间。
-如果你需要构建一个非常大的包含字典的数据结构，那么使用命名元组会更加高效。"""
-
-#Best practices
-Stock = namedtuple('Stock', ['name', 'shares', 'price'])
-def compute_cost(records):
-    total = 0.0
-    for rec in records:
-        s = Stock(*rec)
-        total += s.shares * s.price
-    return total
-
-
-
+from itertools import chain
+a = [1, 2, 3, 4]
+b = ['x', 'y', 'z']
+for x in  a + b:
+    print(x)
+    
+active_items = {1, 2, 3, 4}
+inactive_items = ['x', 'y', 'z']
+for item in chain(active_items, inactive_items):
+    print(item) 
+#a + b和chian()对比
+# a + b,创建新的序列且要求a和b的类型一致,chian() 可迭代对象类型可不一样,且省内存
