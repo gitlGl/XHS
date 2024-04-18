@@ -1,34 +1,35 @@
-xpts = [1, 5, 4, 2, 10, 7,10]
-ypts = {101, 78, 37, 15, 62, 99}
-for x, y in zip(xpts, ypts):#回元组 (x, y) 的迭代器,迭代长度跟参数中最短序列长度一致。
-    print(x,y)
+def gen():
+    x = 0
+    def inner():
+        nonlocal x
+        x = x + 1
+        return x   
+    return inner
     
-#代长度跟参数中最长序列长度一致
-a=[1,2,3,4]
-b=["yy","bb","tt"]
-from itertools import zip_longest
-for i in zip_longest(a,b):
-    print(i)
-    
-for i in zip_longest(a, b, fillvalue=0):
-    print(i)
-
-    
-t=[2,3,4]
-g=["hh","cc","bb"]
-f=[7.9,8,8]
-for i in zip(t, g, f):
-     print(i)
-
-from itertools import chain
-a = [1, 2, 3, 4]
-b = ['x', 'y', 'z']
-for x in  a + b:
+g = iter(gen(),5)
+# #使用iter()函数和partial函数创建了一个迭代器g，
+# 该迭代器会重复调用gen()函数，直到返回的值等于5为止
+for x in g:
     print(x)
     
-active_items = {1, 2, 3, 4}
-inactive_items = ['x', 'y', 'z']
-for item in chain(active_items, inactive_items):
-    print(item) 
-#a + b和chian()对比
-# a + b,创建新的序列且要求a和b的类型一致,chian() 可迭代对象类型可不一样,且省内存
+#用于创建偏函数
+RECORD_SIZE = 32
+with open('test.bin', 'rb') as f:
+    #如果返回b""，则表示迭代结束
+    records = iter(partial(f.read, RECORD_SIZE), b'')
+    #使用iter()函数和partial函数创建了一个迭代器records，该迭代器会重复调用
+    for r in records:
+        print(r)  
+
+from functools import partial
+#偏函数是指在调用函数时，固定函数的部分参数，从而创建一个新的函数
+def add(a, b):
+    return a + b*2
+
+add_five = partial(add, 5)  # 不指定参数名，直接给定值 5
+result = add_five(6)  # 调用 add_five 函数
+print(result)  # 输出结果为 17
+
+add_five = partial(add, b=5)
+result = add_five(8) # 调用 add_five 函数
+print(result) #输出结果为 18
