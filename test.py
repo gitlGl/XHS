@@ -1,21 +1,50 @@
+#集合的差集与交集运算
+set1 = {1, 2, 3, 4, 5}
+set2 = {4, 5, 6, 7, 8}
 
-#从字典中提取子集
-prices = {
-    'ACME': 45.23,
-    'AAPL': 612.78,
-    'IBM': 205.55,
-    'HPQ': 37.20,
-    'FB': 10.75
-}
+print(set1.difference(set2)) #差集运算   输出：{1, 2, 3}
+print(set1.__and__(set2))#交集运算
+print(set1 - set2)  #差集运算 输出：{1, 2, 3}
+print(set1 & set2)
+print(set1.union(set2))#并集运算
 
-# 速度较慢，与字典推导比差距大概慢1-2倍
+# 集合的子集与超集运算
+set1 = {1, 2, 3, 4, 5}
+set2 = {1, 2, 3}
 
-tech_names = { 'AAPL', 'IBM', 'HPQ', 'MSFT' }
-#&表示取交集
-p2 = { key:prices[key] for key in prices.keys() & tech_names }
+print(set1.issubset(set2))  # 子集运算 ，输出：    False
+print(set1 <= set2)
 
-#速度快
-p1 = {key: value for key, value in prices.items() if value > 200}
+print(set1.issuperset(set2))  #超集运算 输出：True
+print(set1 >= set2)
 
-tech_names = {'AAPL', 'IBM', 'HPQ', 'MSFT'}
-p2 = {key: value for key, value in prices.items() if key in tech_names}
+#自定义对象支持交集、差集和子集运算，超集，并集运算
+class MySet(set):
+    def __and__(self, other):#交集运算
+        return MySet(set.intersection(self, other))
+
+    def __sub__(self, other):#差集运算
+        return MySet(set.difference(self, other))
+
+    def __le__(self, other):#子集运算
+        return set.issubset(self, other)
+    
+    def __ge__(self, other):#超集运算
+        return set.issuperset(self, other)
+    
+    def __or__(self, other):#并集运算
+        return MySet(set.union(self, other))
+        
+set1 = MySet([1, 2, 3, 4, 5])
+set2 = MySet([1, 2, 3])
+
+print(set1 & set2)  # 交集 输出：MySet({1, 2, 3})
+print(set1 - set2)  # 差集 输出：MySet({4, 5})
+print(set1 <= set2)  #子集 输出：False
+print(set1 >= set2)  # 超集输出：True
+print(set1 | set2)  #并集 输出：MySet({1, 2, 3, 4, 5})
+
+
+
+
+
