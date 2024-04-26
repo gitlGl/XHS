@@ -1,38 +1,44 @@
-#字典视图的集合运算
-dict1 = {'a': 1, 'b': 2, 'c': 3}
-dict2 = {'b': 2, 'c': 3, 'd': 4}
+#heapq.heappop() 函数总是返回最小的的元素,
+#即最小堆，pop与 push会触发堆调整，
+# 保证下一次pop返回的元素是最小的。
+# pop与 push操作的时间复杂度均为 O(log n)。
+#其实就是数据结构里的堆，还有堆排序也是用来了堆实现
 
-# 交集运算
-intersection_keys = dict1.keys() & dict2.keys()
-#values 不支持集合元素，因为集合元素需要可哈希，而字典的值不一定是可哈希的
-#intersection_values = dict1.values() & dict2.values()
-intersection_items = dict1.items() & dict2.items()
+import heapq
+#具备优先级的队列
+class PriorityQueue:
+    def __init__(self):
+        #里面保存的是元组，例如(-priority, index, item)
+        self._queue = []
+        #记录元素加入队列的顺序，用于确定优先级相同时pop出
+        # 的是最先加入队列的元素，队列先进先出。
+        self._index = 0
 
-# 并集运算
-union_keys = dict1.keys() | dict2.keys()
-#union_values = dict1.values() | dict2.values()
-union_items = dict1.items() | dict2.items()
+    def push(self, item, priority):
+        #-priority保证返回的是优先级最高的元素
+        heapq.heappush(self._queue, (-priority, self._index, item))
+        self._index += 1
+        print(self._queue)
 
-# 差集运算
-difference_keys = dict1.keys() - dict2.keys()
-#difference_values = dict1.values() - dict2.values()
-difference_items = dict1.items() - dict2.items()
-
-keys = dict1.keys()#输出
-print(keys)#dict_keys(['a', 'b', 'c'])
-dict1['d'] = 4#添加一个键值对
-#说明字典视图可实时更新
-print(keys)#dict_keys(['a', 'b', 'c', 'd'])
-
-"""dict_keys：键的视图。
-dict_values：值的视图。
-dict_items：键值对的视图。
-
-字典视图（dictionary views）中的优势和用途：
-1.动态性和实时更新：字典视图是动态的，它们会随着原始字典的更改而更新。
-2.节省内存：字典视图并不会复制字典的数据，
-3.可迭代性：字典视图是可迭代的，可以像迭代其他可迭代对象一样遍历它们。
-4.支持集合操作：字典视图支持类似集合的操作，比如交集、并集、差集等。这使得你可以方便地对字典的键、
-值或键值对进行集合运算，而无需显式地将它们转换为集合。
-5.性能优化：在一些情况下，使用字典视图可以提高代码的性能。因为它们是动态的，不需要复制数据。
-"""
+    def pop(self):
+        
+        result = heapq.heappop(self._queue)[-1]
+        print(self._queue)
+        return result
+    
+    
+class Item:
+     def __init__(self, name):
+         self.name = name
+     def __repr__(self):
+         return 'Item({!r})'.format(self.name)
+#数字越大优先级越高
+q = PriorityQueue()
+q.push(Item('foo'), 1)
+q.push(Item('bar'), 5)
+q.push(Item('spam'), 4)
+q.push(Item('grok'), 1)
+print(q.pop())#Item('bar')
+q.pop()#Item('spam')
+q.pop()#Item('foo')
+q.pop()#Item('grok')
