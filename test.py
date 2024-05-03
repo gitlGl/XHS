@@ -1,23 +1,34 @@
-"""
-当处理大型数据结构、
-嵌套结构或者需要清晰地显示数据时
- 可以使用 pprint 模块来打印出数据结构。
- 例如，爬虫返回json格式数据，使用pprint模块来打印出数据结构
- 使得数据结构更易读
-    """
-import json
-import pprint
 
-# JSON 数据
-json_data = """{"name": "John Doe", "age": 30, "city": 
-"New York","friends": ["Alice", "Bob", "Charlie"]}"""
+words = [
+   'look', 'into', 'my', 'eyes', 'look', 'into', 'my', 'eyes',
+   'the', 'eyes', 'the', 'eyes', 'the', 'eyes', 'not', 'around', 'the',
+   'eyes', "don't", 'look', 'around', 'the', 'eyes', 'look', 'into',
+   'my', 'eyes', "you're", 'under'
+]
 
-# 将 JSON 数据解析为 Python 字典
-parsed_data = json.loads(json_data)
+from collections import Counter
+word_counts = Counter(words)
+print(word_counts)
+"""Counter({'eyes': 8, 'the': 5, 'look': 4, 'into': 3, 'my': 3, 
+ 'around': 2, 'not': 1, "don't": 1, "you're": 1, 'under': 1})
+ """
+top_three = word_counts.most_common(3)
+print(top_three)
+#输出 [('eyes', 8), ('the', 5), ('look', 4)]
+morewords = ['why','are','you','not','looking','in','my','eyes']
+word_counts.update(morewords)
+print(word_counts.most_common(3))
+#输出 [('eyes', 9), ('the', 5), ('look', 4)]
 
-pprint.pprint(parsed_data)
-#输出
-{'age': 30,
- 'city': 'New York',
- 'friends': ['Alice', 'Bob', 'Charlie'],
- 'name': 'John Doe'}
+from collections import Counter
+word_counts = Counter(words)
+top_three = word_counts.most_common(3)
+print(top_three)
+#输出 [('eyes', 8), ('the', 5), ('look', 4)]
+
+morewords = ['why','are','you','not','looking','in','my','eyes']
+word_counts.update(morewords)
+print(word_counts.most_common(3))
+#输出 [('eyes', 9), ('the', 5), ('look', 4)]
+
+
