@@ -1,57 +1,60 @@
-import xmltodict
-import pprint
-# 定义XML字符串
-xml_data = '''
-<bookstore>
-        <book category="COOKING">
-                <title lang="en">Everyday Italian</title>
-                <author>Giada De Laurentiis</author>
-                <year>2005</year>
-                <price>30.00</price>
-        </book>
-        <book category="CHILDREN">
-                <title lang="en">Harry Potter</title>
-                <author>J K. Rowling</author>
-                <year>2005</year>
-                <price>29.99</price>
-        </book>
-        <book category="WEB">
-                <title lang="en">Learning XML</title>
-                <author>Erik T. Ray</author>
-                <year>2003</year>
-                <price>39.95</price>
-        </book>
-</bookstore>
-'''
-
-# 将XML转换为dict对象
-data_dict = xmltodict.parse(xml_data, dict_constructor=dict)
-
-# 将dict对象转换回XML
-xml = xmltodict.unparse(data_dict, pretty=True)
-print(xml)
-#写入文件
-with open('data.xml', 'w') as f:
+xml = """<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <!-- 服务器配置 -->
+    <server>
+        <hostname>example.com</hostname>
+        <port>8080</port>
+        <protocol>https</protocol>
+    </server>
+    
+    <!-- 数据库配置 -->
+   <database attribute_name="attribute_value">
+        <hostname>db.example.com</hostname>
+        <port>3306</port>
+        <username>admin</username>
+        <password>password123</password>
+    </database>
+    
+    <!-- 日志配置 -->
+    <logging>
+        <level>debug</level>
+        <path>/var/log/myapp.log</path>
+    </logging>
+</config>
+"""
+with open('config.xml', 'w',encoding='utf-8') as f:
     f.write(xml)
     
-#从文件中读出并转换为字典
-with open('data.xml', 'r') as f:
-    xml = f.read()
-    
-data_dict = xmltodict.parse(xml, dict_constructor=dict)
-pprint.pprint(data_dict)
-{'bookstore': {'book': [{'@category': 'COOKING',
-                         'author': 'Giada De Laurentiis',
-                         'price': '30.00',
-                         'title': {'#text': 'Everyday Italian', '@lang': 'en'},
-                         'year': '2005'},
-                        {'@category': 'CHILDREN',
-                         'author': 'J K. Rowling',
-                         'price': '29.99',
-                         'title': {'#text': 'Harry Potter', '@lang': 'en'},
-                         'year': '2005'},
-                        {'@category': 'WEB',
-                         'author': 'Erik T. Ray',
-                         'price': '39.95',
-                         'title': {'#text': 'Learning XML', '@lang': 'en'},
-                         'year': '2003'}]}}
+import xml.etree.ElementTree as ET
+# 读取XML文件
+tree = ET.parse('config.xml')
+root = tree.getroot()
+
+# 修改服务器配置
+"""  . 表示当前节点，即 root，它在这里是 <config> 标签。
+    // 是一个XPath轴，表示选择从当前节点开始的文档中的所有位置，不限于子代，可以是任何后代节点。
+    server 是我们要查找的标签名。
+    .//server 表示选择所有名为 server 的标签，无论它们在文档中的什么位置。"""
+for server in root.findall('.//server'):
+      
+    server.find('hostname').text = 'newhostname.com'
+    server.find('port').text = '9090'
+
+# 增加新的配置项
+new_config = ET.Element('backup')
+new_path = ET.SubElement(new_config, 'path')
+new_path.text = '/var/backup'
+
+# 将新配置项添加到根节点下
+root.append(new_config)
+
+#添加属性的节点
+logging_elem = root.find('logging')
+logging_elem.set('testattribute_name', 'attribute_value')
+
+# 查找并删除具有指定属性值的节点
+for elem in root.findall(f'.//database[@attribute_name="attribute_value"]'):
+    print(elem)
+    root.remove(elem)
+
+tree.write('modified_config.xml',encoding='utf-8',xml_declaration=True)
