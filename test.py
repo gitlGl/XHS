@@ -1,3 +1,5 @@
+import xml.etree.ElementTree as ET
+#https://docs.python.org/zh-cn/3/library/xml.etree.elementtree.html
 xml = """<?xml version="1.0" encoding="UTF-8"?>
 <config>
     <!-- 服务器配置 -->
@@ -6,7 +8,6 @@ xml = """<?xml version="1.0" encoding="UTF-8"?>
         <port>8080</port>
         <protocol>https</protocol>
     </server>
-    
     <!-- 数据库配置 -->
    <database attribute_name="attribute_value">
         <hostname>db.example.com</hostname>
@@ -14,7 +15,6 @@ xml = """<?xml version="1.0" encoding="UTF-8"?>
         <username>admin</username>
         <password>password123</password>
     </database>
-    
     <!-- 日志配置 -->
     <logging>
         <level>debug</level>
@@ -27,34 +27,58 @@ with open('config.xml', 'w',encoding='utf-8') as f:
     
 import xml.etree.ElementTree as ET
 # 读取XML文件
+# ElementTree对象
+#使用find属性时只支持查找element对象，不支持对element对象增删改查属性
 tree = ET.parse('config.xml')
+
+#Element对象
+#使用find方法时xpath语法只能使用相对路径，支持对子element对象增删改查属性
 root = tree.getroot()
 
-# 修改服务器配置
-"""  . 表示当前节点，即 root，它在这里是 <config> 标签。
-    // 是一个XPath轴，表示选择从当前节点开始的文档中的所有位置，不限于子代，可以是任何后代节点。
-    server 是我们要查找的标签名。
-    .//server 表示选择所有名为 server 的标签，无论它们在文档中的什么位置。"""
-for server in root.findall('.//server'):
-      
-    server.find('hostname').text = 'newhostname.com'
-    server.find('port').text = '9090'
+for child in root:
+    print(child.tag, child.attrib,child.text)
 
-# 增加新的配置项
-new_config = ET.Element('backup')
-new_path = ET.SubElement(new_config, 'path')
-new_path.text = '/var/backup'
+# xpath简单语法
+"""  . 表示当前节点(相对路径)，即 root，它在这里是 <config> 标签。
+    /	从根节点选取（取子节点）。
+    // 递归查找（取所有子节点）。
+    .// 表示当前节点（相对路径）的所有子节点。"""
 
-# 将新配置项添加到根节点下
-root.append(new_config)
+#选取所有具有属性attribute_name属性的节点，*代表所有元素节点
+print(root.findall('.//*[@attribute_name]'))
 
-#添加属性的节点
-logging_elem = root.find('logging')
-logging_elem.set('testattribute_name', 'attribute_value')
+#选取所有具有属性attribute_name属性的database节点
+print(root.findall('.//database[@attribute_name]'))
 
-# 查找并删除具有指定属性值的节点
-for elem in root.findall(f'.//database[@attribute_name="attribute_value"]'):
-    print(elem)
-    root.remove(elem)
+#选取 database元素的所有子元素。
+print(root.findall('./database/*'))
 
-tree.write('modified_config.xml',encoding='utf-8',xml_declaration=True)
+#递归获取所有元素
+print(root.findall('.//'))
+
+#获取当前元素
+print(root.findall('.'))
+
+#获取所有元素，不包括子元素
+print("gs",root.findall('./'))
+
+#选取 第一个database 元素。
+print("fd",root.findall('./database[1]'))
+
+#选取最后一个database 元素。
+print("fd",root.findall('./database[last()]'))
+
+#选取具有属性attribute_name属性的database元素。
+root.findall(f'.//database[@attribute_name="attribute_value"]')
+
+root.tag = 'cfj'#改变root 标签名
+
+#tree.write('modified_config.xml',encoding='utf-8',xml_declaration=True)
+
+#当前节点下子节点,'/server'旧版本使用方法
+#新的使用方法为统一相对路径'./server'
+print(tree.findall('./server'))
+print(tree.findall('./'))
+
+
+
