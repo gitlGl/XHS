@@ -1,98 +1,42 @@
-#服务端
-import socket
-import ssl,time
-
-def start_secure_server(host, port, server_certfile, server_keyfile):
-    context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH) 
-    #加载证书信任链
-    context.load_cert_chain(certfile=server_certfile, keyfile=server_keyfile)
-    
-    #不验证客户端证书,单向认证
-    context.verify_mode = ssl.CERT_NONE
-    server_socket = socket.create_server((host, port))
-    print(f"Server listening on {host}:{port}...")
-    conn, addr = server_socket.accept()
-    
-    with context.wrap_socket(conn, server_side=True) as ssl_conn:
-        print(f"Secure connection established from {addr}")
-        handle_client(ssl_conn)
-
-def handle_client(connection):
-    while True:
-        data = connection.recv(1024)
-       
-        print(f"Received data from client: {data.decode('utf-8')}")
-        connection.send(data.upper())
-        time.sleep(2)
-
-
-host = "localhost"  # 监听本地端口
-port = 8443
-server_certfile = "cert/server-cert.pem"  # 服务器证书文件路径
-server_keyfile = "cert/server-key.pem"  # 服务器私钥文件路径
-
-start_secure_server(host, port, server_certfile, server_keyfile)
+"""
+SSH的全称是Secure Shell，它是一种网络协议，用于在不安全的网络中安全地进行远程访问和执行命令。
+SSH通过加密方式对网络连接进行保护，防止信息被窃听、篡改或伪造。
+SSH协议最初由Tatu Ylönen在1995年开发，成为保护远程连接安全的标准解决方案之一。
+"""
 
 """
-生成根证书私钥
-openssl genpkey -algorithm RSA -out ca-key.pem
-通过私钥生成公钥，私钥可以生成公钥，公钥不可以生成私钥
-openssl rsa -in ca-key.pem -pubout -out ca_public_key.pem
- 
-生成根证书，证书中包含根证书中的公钥
-openssl req -new -x509 -key ca-key.pem -out ca-cert.pem -days 3650
+以下为生成 SSH 密钥的简单命令：
+ssh-keygen -t rsa -C "youremail@example.com" 和 ssh-keygen -t rsa -b 2048 -f /path/to/new_key 
+-t 表示密钥类型，可以是 rsa、dsa、ecdsa 等。-b 表示密钥长度，默认为2048。
+-C 参数用于设置注释信息，这个注释位于公钥末尾。 -f 参数用于指定密钥路径以及文件名。
+"""
 
-创建服务器私钥
-openssl genpkey -algorithm RSA -out server-key.pem
-通过私钥生成公钥
-openssl rsa -in server-key.pem -pubout -out server_public_key.pem
+"""
+当你使用 SSH 登录时，默认情况下会从用户的C:\Users\Administrator\.ssh（默认路径）下获取私钥进行解密。
+SSH 客户端会在登录时自动查找该路径下的私钥文件，并将其用于解密身份验证所需的信息。
+除了填写公钥验证以外，还可以通过账户与密码进行验证。
 
-创建服务器证书签名请求
-openssl req -new -key server-key.pem -out server-csr.pem
+比如git仓库关联github远程仓库后，提交代码需要验证公钥，
+大致流程是流程是github会加密一段“内容”发送给git，（实际流程更复杂）
+git会从C:\Users\Administrator\.ssh获取私钥解密这段内容重新发送给github，
+如果“内容”相同则验证通过，开始进行加密通信
+注意：C:\Users\Administrator\.ssh中可能有多个密钥对，SSH 客户端会依次尝试这些路径下的私钥文件，
+直到找到合适的私钥进行身份验证。
 
-使用根证书对服务器证书进行签名，证书中包含服务器的公钥
-openssl x509 -req -in server-csr.pem -CA ca-cert.pem -CAkey ca-key.pem -out server-cert.pem -CAcreateserial -days 3650
-    """
-    
- 
- 
-#客户端    
-import socket
-import ssl,time
+平时使用得比较多的SSH客户端是PuTTY和Xshell，Xftp
 
-def establish_secure_connection(host, port, ca_cert_file):
+比较著名的有python第三方库paramiko用于在SSH协议上执行命令和文件传输操作。
+
+Fabric：Fabric是一个用于自动化部署和系统管理的Python库，
+它建立在Paramiko之上，并提供了更高级的接口和功能
+
+Spur：Spur是一个轻量级的Python库，基于Paramiko和Shell库，
+用于执行远程命令。它提供了简洁的API来连接到远程主机，并执行命令、获取输出等操作。
+
+
+
+"""
+#ssh链接命令
+#ssh lin@172.31.128.118
+
    
-    # 创建一个 SSL 上下文
-    context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-    context.load_verify_locations(ca_cert_file)
-
-    # 设置验证模式为必需
-    context.verify_mode = ssl.CERT_REQUIRED
-
-    # 设置不检查主机名
-    context.check_hostname = False
-
-
-    sock = socket.create_connection((host, port)) 
-    #包装程触发ssl握手验证
-    #其中包括服务器发送其证书给客户端，然后客户端验证服务器的证书。
-    #简单情况下就可以互相交换公钥进行加密通信
-    with context.wrap_socket(sock, server_hostname=host) as ssock:
-        cert = ssock.getpeercert()
-        print(cert.items())#打印出服务器的证书信息
-        
-        while True:
-            ssock.send(b"Hello, server!")
-            data = ssock.recv(1024)
-            print(data.decode())
-            time.sleep(2)
-                
-host = "localhost"
-port = 8443
-
-#使用根证书文件进行验证
-ca_cert_file = "cert/ca-cert.pem"  
-establish_secure_connection(host, port, ca_cert_file)
-
-
-
