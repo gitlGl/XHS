@@ -1,23 +1,16 @@
-import numpy as np  
-import math  
+import chardet
 
-# 设定x的范围和分割数（更精细的分割将得到更精确的结果）  
-x_start = 0  
-x_end = 2 * math.pi  
-num_rectangles = 1000  # 你可以调整这个数来改变矩形数量  
-  
-# 计算每个矩形的宽度  
-delta_x = (x_end - x_start) / num_rectangles  
-  
-# 计算每个矩形的高度（对应y=sin(x)的值）  #注意这里加1是为了包含端点  
-x_values = np.linspace(x_start, x_end, num_rectangles+1)
-y_values = np.sin(x_values)  
-#使用绝对值来确保我们考虑函数与x轴的正负两侧  
-heights = np.abs(y_values[:-1])
-  
-# 计算每个矩形的面积并求和  
-rectangle_areas = heights * delta_x  
-total_area = np.sum(rectangle_areas)  
-  
-# 输出结果  
-print(total_area)
+gbk = '你好，世界'.encode("gbk")
+print(chardet.detect(gbk))
+{'encoding': 'TIS-620', 
+ 'confidence': 0.22, 'language': 'Thai'}
+
+utf8 = '你好，世界'.encode("utf8")
+print(chardet.detect(utf8))
+{'encoding': 'utf-8', 'confidence': 0.99, 'language': ''}
+
+"""
+encoding: 表示检测到的文本编码名称。
+confidence: 表示检测的置信度，范围从 0 到 1。
+language: 表示检测到的文本所使用的语言。
+    """
