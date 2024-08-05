@@ -1,33 +1,76 @@
-import locale,sys
-#返回一个元组，'zh_CN语言区域，
-# 'cp936'即gbk
-locale.getdefaultlocale() #('zh_CN', 'cp936')
+import pandas as pd
 
-#获取系统的首选编码，即系统默认的文本编码方式
-locale.getpreferredencoding()#cp936
+# 创建示例DataFrame
+df1 = pd.DataFrame({'key': ['A', 'B', 'C', 'D'],
+                    'value1': [1, 2, 3, 4]})
 
-#获取 Python 解释器默认使用的文本编码。
-sys.getdefaultencoding()#'utf-8'
+df2 = pd.DataFrame({'key': ['B', 'D', 'E', 'F'],
+                    'value2': ['foo', 'bar', 'baz', 'qux'],
+                     'value3': ['foo', 'bar', 'baz', 'qux']}
+                   )
 
-#解释器默认utf8，若你的py文件是gbk且含有
-#中文字符，则需要在文件开头注明gbk编码“# -*- coding: gbk -*-”
-#否则报错SyntaxError: Non-UTF-8 code starting with “xxx”
 
-print(len('你好， 世界。'.encode("utf8")))#19
-print(len('你好， 世界。'.encode("gbk")))#13
+# 使用 pd.merge 合并特定列
+merged = pd.merge(left=df1[['key']], right=df2[['key', 'value2',
+                                'value3']],on='key', how='left')
+print(merged)
 
-"""
-大多数计算机专业人士学习的第一门编程语言是c语言
-而且在windows平台下经常遇到输出乱码情况，
-多数情况是因为你.c文件保存的格式为
-非gbk，而输出终端默认gbk，解决办法有两个：
 
-1.把你的.c文件编码格式更改为gbk格式
-2.gcc -fexec-charset=GBK -o hello hello.c
-添加的‘-fexec-charset=GBK’表示把字符串常量处理为gbk编码格式
+# 创建示例DataFrame
+df1 = pd.DataFrame({'key_left': ['A', 'B', 'C', 'D'],
+                    'value1': [1, 2, 3, 4]})
 
-python终端输出则不会出现乱码情况，因为输出终端时python会
-获取终端的编码格式，然后转换为终端的的编码格式，
-python易学一定程度也是以为这些贴心的细节处理到位的。
-    """
-   
+df2 = pd.DataFrame({'key_right': ['B', 'D', 'E', 'F'],
+                    'value2': ['foo', 'bar', 'baz', 'qux']})
+
+# 使用 left_on 和 right_on 合并特定列
+merged = pd.merge(left=df1, right=df2, left_on='key_left',
+                  right_on='key_right', how='inner')
+print(merged)
+
+
+
+
+df1 = pd.DataFrame({'key': ['A', 'B', 'C'],
+                    'value1': [1, 2, 3]})
+
+df2 = pd.DataFrame({'key': ['B', 'C', 'D'],
+                    'value2': ['foo', 'bar', 'baz']})
+merged = pd.merge(df1, df2, on='key', 
+                  how='outer', indicator=True)
+print(merged)
+
+
+
+df1 = pd.DataFrame({'key': ['A', 'B', 'C'],
+                    'value': [1, 2, 3],
+                    'common_col': ['X1', 'Y1', 'Z1']})
+
+df2 = pd.DataFrame({'key': ['B', 'C', 'D'],
+                    'value': [4, 5, 6],
+                    'common_col': ['X2', 'Y2', 'Z2']})
+merged = pd.merge(df1, df2, on='key', suffixes=('_df1', '_df2'))
+print(merged)
+
+
+# 多层索引示例
+multi_index_df = pd.DataFrame({
+    'key1': ['A', 'A', 'B', 'B'],
+    'key2': ['X', 'Y', 'X', 'Y'],
+    'data': [10, 20, 30, 40]
+})
+
+# 另一个多层索引示例
+another_multi_index_df = pd.DataFrame({
+    'value': [100, 200, 300, 400]
+}, index=pd.MultiIndex.from_tuples([('A', 'X'), 
+        ('A', 'Y'),('B', 'X'), ('B', 'Y')], names=['key1', 'key2']))
+
+# 使用多层索引进行合并
+merged_multi = pd.merge(multi_index_df, another_multi_index_df,
+                        left_on=['key1', 'key2'], right_index=True)
+print(merged_multi)
+
+'''copy (bool, 默认为 True):
+控制是否复制数据。当 copy=True 时，原始数据不受影响，
+返回合并后的新DataFrame；当 copy=False 时，尝试在合并时直接修改原始数据，'''
