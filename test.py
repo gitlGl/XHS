@@ -1,17 +1,34 @@
-#以前进行文件目录操作时候经常使用os.walk函数
-#glob其实更好用与直接,还有新出的pathlib库中的glob
-#编程的门槛总体上是 越来越低了
-import glob,os,pathlib
+import requests,urllib3,time
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
 
-# 匹配当前目录及其所有子目录中的所有文本文件
-files = glob.glob('**/*.txt', recursive=True)
+url = "https://example.com"#这个网站真实存在，emmm
+session = requests.Session()
+retry = Retry(total=3, backoff_factor=0.1, 
+              status_forcelist=[ 500, 502, 503, 504 ])
 
-# 匹配当前目录下以 'data_' 开头的所有文件
-data_files = glob.glob('data_*.txt')
+adapter = HTTPAdapter(max_retries=retry)
+session.mount('https://', adapter)
+session.mount('http://', adapter)
+#total=3，重试3次
+#backoff_factor=0.1,间隔时间，会随着重试次数指数递增
+#status_forcelist=[ 500, 502, 503, 504 ]这些状态码强制重试
+response = session.get(url)
 
- #匹配 'myfolder' 文件夹中的所有图片文件
-image_files = glob.glob('myfolder/*.{jpg,png,gif}', recursive=True)
+if response.status_code == 200:
+    print("请求成功",response.text)
+else:
+    print("请求失败")
+    
+    
+#利用try与while进行粗暴重试
 
-# 匹配当前目录下的所有文本文件并获取绝对路径
-txt_files = glob.glob('*.txt')
-absolute_paths = [os.path.abspath(f) for f in txt_files]
+while True:
+    try:
+        requests.get(url)
+        break
+    except Exception as e:
+        print(e)
+        time.sleep(2)#两秒重试一次
+        
