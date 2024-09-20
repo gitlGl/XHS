@@ -1,34 +1,29 @@
-import requests,urllib3,time
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+
+"""
+sys.modules是import的缓存机制
+引入模块时优先从缓存中引入
+    """
+import sys
+# 动态导入模块
+module_name = 'json'
+json = __import__(module_name)
+
+# 检查 `sys.modules`
+print(module_name in sys.modules)  # 输出: True
+print(sys.modules[module_name])    
+# 输出: <module 'json' from '/usr/lib/python3.9/json/__init__.py'>
+json.loads('{}')
+sys.modules[module_name].loads('{}')
+
 from urllib3.util.retry import Retry
+from requests.packages.urllib3.util.retry import Retry
 
-url = "https://example.com"#这个网站真实存在，emmm
-session = requests.Session()
-retry = Retry(total=3, backoff_factor=0.1, 
-              status_forcelist=[ 500, 502, 503, 504 ])
 
-adapter = HTTPAdapter(max_retries=retry)
-session.mount('https://', adapter)
-session.mount('http://', adapter)
-#total=3，重试3次
-#backoff_factor=0.1,间隔时间，会随着重试次数指数递增
-#status_forcelist=[ 500, 502, 503, 504 ]这些状态码强制重试
-response = session.get(url)
-
-if response.status_code == 200:
-    print("请求成功",response.text)
-else:
-    print("请求失败")
-    
-    
-#利用try与while进行粗暴重试
-
-while True:
-    try:
-        requests.get(url)
-        break
-    except Exception as e:
-        print(e)
-        time.sleep(2)#两秒重试一次
-        
+for package in ("urllib3", "idna"):
+    locals()[package] = __import__(package)
+    # This traversal is apparently necessary such that the identities are
+    # preserved (requests.packages.urllib3.* is urllib3.*)
+    for mod in list(sys.modules):
+     if mod == package or mod.startswith(f"{package}."):
+        #requests.packages模块均指向"urllib3", "idna"
+        sys.modules[f"requests.packages.{mod}"] = sys.modules[mod]
