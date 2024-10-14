@@ -1,83 +1,78 @@
-"""//gcc -shared -o test.dll test.c
-#include <stdio.h>
-#include <windows.h>
+import multiprocessing
 
-__declspec(dllexport) char *test(const char *file_path)
-{
-    SetConsoleOutputCP(CP_UTF8); // 设置终端输出编码格式为utf8
-    //本设备文件系统默认gbk编码，
-    //如果python调用的二机制字符串路径是utf8编码，则
-    //报错找不到该文件，因为gbk编码的二进制与utf8的二机制不一致
-    FILE *file = fopen(file_path, "r");
-    if (file == NULL)
-    {
-        return "无法打开文件";
-    }
+def worker_function(x):
+    if x % 2 == 0:  # 模拟偶数输入引发异常
+        raise ValueError(f"Error processing {x}")
+    return x * 2
 
-    char buffer[256];
-    while (fgets(buffer, sizeof(buffer), file) != NULL)
-    {
-        printf("%s", buffer);
-    }
+def callback(result):
+    print(f"Result: {result}")
 
-    fclose(file); // 关闭文件
+def err_callback(e):
+    print(f"Exception occurred: {e}")
 
-    return "测试";
-}
-"""
 
-import ctypes
+if __name__ == "__main__":
+    pool = multiprocessing.Pool(processes=4)
 
-# 加载 DLL
-lib = ctypes.CDLL(r'C:\Users\Administrator\Desktop\test\test.dll')
+    for i in range(10):
+        result = pool.apply_async(worker_function, (i,), 
+                        callback=callback,#返回结果回调
+                        error_callback=err_callback) # 错误回调
 
-# 设置函数参数和返回值类型
-lib.test.argtypes = [ctypes.c_char_p]
-lib.test.restype = ctypes.c_char_p  # 返回值类型为字符串
+    pool.close()
+    pool.join()
+import multiprocessing
 
-# 调用 C 函数，参数为字符串路径的二进制是gbk编码
-message = r"C:\Users\Administrator\Desktop\test\测试\test.txt".encode('gbk')
-result = lib.test(message)
-print(type(result))
+def worker_function(x):
+    if x % 2 == 0:  # 模拟偶数输入引发异常
+        raise ValueError(f"Error processing {x}")
+    return x * 2
 
-# 处理返回值
-if result:
-    print(result.decode('utf8')) 
-    
-    
-"""
-#include <stdio.h>
-#include <unistd.h>
-//生成dll被python调用
-//gcc -shared -o test3.dll test3.c 
+def callback(result):
+    print(f"Result: {result}")
 
-__declspec(dllexport) const char* 
-get_current_directory(char* buffer, 
-size_t size) {
-    return getcwd(buffer, size);//获取工作目录
-}
+def err_callback(e):
+    print(f"Exception occurred: {e}")
 
-    """
+
+if __name__ == "__main__":
+    pool = multiprocessing.Pool(processes=4)
+
+    for i in range(10):
+        result = pool.apply_async(worker_function, (i,), 
+                        callback=callback,#返回结果回调
+                        error_callback=err_callback) # 错误回调
+
+    pool.close()
+    pool.join()
     
 
-import ctypes,os
 
-test3 = ctypes.CDLL('./test3.dll')
+import multiprocessing
 
-buffer = ctypes.create_string_buffer(1024)
+def work(x):
+    if x == 2:
+        2 / 0  # 这里会引发异常
+    return x * 2
 
-result = test3.get_current_directory(buffer, ctypes.sizeof(buffer))
+def run(inputs):
+    pool = multiprocessing.Pool(processes=4)
+    results = []
 
-try:
-    print("Current working directory:", buffer.value.decode('utf8'))
+    for i in inputs:
+        result = pool.apply_async(work, (i,))
+        results.append(result)
     
-except Exception as e:
-    print("错误提示：",e)
-    print("Current working directory:", buffer.value.decode('gbk'))
-    
-# 错误提示：'utf-8' codec can't decode byte 0xb2 in position 31: invalid start byte
-# Current working directory: C:\Users\Administrator\Desktop\测试中文路径
-print(os.getcwd())#python底层会自动处理编码问题
-    
-    
-    
+    pool.close()
+    pool.join()
+
+    for res in results:
+        try:
+            print(res.get())  # 这里会引发异常
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    run([0, 1, 2, 3])  # 包含一个会引发异常的输入
+
